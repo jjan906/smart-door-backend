@@ -1,11 +1,11 @@
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
-COPY go.mod go.sum* ./
-RUN go mod download
+COPY go.mod ./
+RUN go mod tidy
 
 COPY . .
-RUN go build -o server main.go
+RUN go mod tidy && go build -o server main.go
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
