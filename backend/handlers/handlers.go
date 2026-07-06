@@ -91,7 +91,7 @@ func GetLatestSensorData(c *fiber.Ctx) error {
 	defer cancel()
 
 	collection := database.GetCollection("sensor_data")
-	opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+	opts := options.FindOne().SetSort(bson.D{{Key: "received_at", Value: -1}})
 
 	var result data.SensorData
 	err := collection.FindOne(ctx, bson.M{}, opts).Decode(&result)
@@ -131,7 +131,7 @@ func GetDoorStatus(c *fiber.Ctx) error {
 	defer cancel()
 
 	collection := database.GetCollection("door_status")
-	opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+	opts := options.FindOne().SetSort(bson.D{{Key: "received_at", Value: -1}})
 
 	var result data.DoorStatus
 	err := collection.FindOne(ctx, bson.M{}, opts).Decode(&result)
@@ -148,7 +148,7 @@ func GetDeviceStatus(c *fiber.Ctx) error {
 	defer cancel()
 
 	collection := database.GetCollection("device_status")
-	opts := options.FindOne().SetSort(bson.D{{Key: "timestamp", Value: -1}})
+	opts := options.FindOne().SetSort(bson.D{{Key: "received_at", Value: -1}})
 
 	var result data.DeviceStatus
 	err := collection.FindOne(ctx, bson.M{}, opts).Decode(&result)
