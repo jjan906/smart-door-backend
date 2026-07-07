@@ -71,7 +71,7 @@ func GetSensorData(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit", 50)
 	collection := database.GetCollection("sensor_data")
 
-	opts := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}}).SetLimit(int64(limit))
+	opts := options.Find().SetSort(bson.D{{Key: "received_at", Value: -1}}).SetLimit(int64(limit))
 	cursor, err := collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
@@ -111,7 +111,7 @@ func GetAccessLogs(c *fiber.Ctx) error {
 	limit := c.QueryInt("limit", 50)
 	collection := database.GetCollection("access_logs")
 
-	opts := options.Find().SetSort(bson.D{{Key: "timestamp", Value: -1}}).SetLimit(int64(limit))
+	opts := options.Find().SetSort(bson.D{{Key: "received_at", Value: -1}}).SetLimit(int64(limit))
 	cursor, err := collection.Find(ctx, bson.M{}, opts)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
