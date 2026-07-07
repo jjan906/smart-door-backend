@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"  // ← tambah ini
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"smart-door-backend/database"
@@ -174,4 +175,36 @@ func GetAccessStats(c *fiber.Ctx) error {
 		"denied":  denied,
 		"total":   granted + denied,
 	})
+}
+
+// DELETE /api/access/all - hapus semua log akses
+func DeleteAllAccessLogs(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	collection := database.GetCollection("access_logs")
+	_, err := collection.DeleteMany(ctx, bson.M{})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"message": "Semua log berhasil dihapus"})
+}
+
+// DELETE /api/access/:id - hapus satu log akses
+func DeleteAccessLog(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	id := c.Params("id")
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "ID tidak valid"})
+	}
+
+	collection := database.GetCollection("access_logs")
+	_, err = collection.DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"message": "Log berhasil dihapus"})
 }

@@ -64,10 +64,12 @@ func main() {
 	// Data sensor INA219
 	api.Get("/sensor", handlers.GetSensorData)
 	api.Get("/sensor/latest", handlers.GetLatestSensorData)
-
-	// Log akses RFID
 	api.Get("/access", handlers.GetAccessLogs)
 	api.Get("/access/stats", handlers.GetAccessStats)
+
+	// ← TAMBAH INI
+	api.Delete("/access/all", handlers.DeleteAllAccessLogs)
+	api.Delete("/access/:id", handlers.DeleteAccessLog)
 
 	// Status pintu & perangkat
 	api.Get("/door/status", handlers.GetDoorStatus)
