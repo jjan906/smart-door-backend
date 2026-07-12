@@ -247,3 +247,37 @@ func Login(c *fiber.Ctx) error {
 		"message": "Login berhasil",
 	})
 }
+
+// POST /api/auth/change-password
+// Body: { "old_password": "...", "new_password": "..." }
+func ChangePassword(c *fiber.Ctx) error {
+	type ChangePassRequest struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	var req ChangePassRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Body tidak valid"})
+	}
+
+	if req.OldPassword == "" || req.NewPassword == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "old_password dan new_password wajib diisi"})
+	}
+
+	if len(req.NewPassword) < 6 {
+		return c.Status(400).JSON(fiber.Map{"error": "Password baru minimal 6 karakter"})
+	}
+
+	// Verifikasi password lama
+	if req.OldPassword != constant.ADMIN_PASSWORD {
+		return c.Status(401).JSON(fiber.Map{"error": "Password lama salah"})
+	}
+
+	// Karena password disimpan di env/memory, update runtime variable
+	// Perubahan ini berlaku selama proses berjalan
+	// Untuk permanen: set env var ADMIN_PASSWORD di Railway
+	constant.ADMIN_PASSWORD = req.NewPassword
+
+	return c.JSON(fiber.Map{"message": "Password berhasil diubah"})
+}

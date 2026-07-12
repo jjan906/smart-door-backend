@@ -69,6 +69,7 @@ func main() {
 	})
 
 	// ── PROTECTED ROUTES ───────────────────────────────
+	api.Post("/auth/change-password", handlers.ChangePassword)  // ← tambah di sini
 	api.Get("/sensor", handlers.GetSensorData)
 	api.Get("/sensor/latest", handlers.GetLatestSensorData)
 
