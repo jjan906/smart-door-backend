@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"context"
+	"encoding/base64"   // ← tambah
+	"fmt"               // ← tambah
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"  // ← tambah ini
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"smart-door-backend/constant"   // ← tambah
 	"smart-door-backend/database"
 	data "smart-door-backend/Types"
 )
@@ -207,4 +210,40 @@ func DeleteAccessLog(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"message": "Log berhasil dihapus"})
+}
+
+// =====================================================
+// AUTH HANDLER
+// =====================================================
+
+// POST /api/login
+// Body: { "username": "...", "password": "..." }
+func Login(c *fiber.Ctx) error {
+	type LoginRequest struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	var req LoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Body tidak valid"})
+	}
+
+	// Credentials hardcoded — ganti sesuai kebutuhan
+	validUser := constant.ADMIN_USERNAME
+	validPass := constant.ADMIN_PASSWORD
+
+	if req.Username != validUser || req.Password != validPass {
+		return c.Status(401).JSON(fiber.Map{"error": "Username atau password salah"})
+	}
+
+	// Token sederhana: base64(username:timestamp)
+	// Cukup untuk demo — bukan JWT produksi
+	raw := fmt.Sprintf("%s:%d", req.Username, time.Now().Unix())
+	token := base64.StdEncoding.EncodeToString([]byte(raw))
+
+	return c.JSON(fiber.Map{
+		"token":   token,
+		"message": "Login berhasil",
+	})
 }

@@ -141,3 +141,14 @@ func PublishReset() error {
 	token.Wait()
 	return token.Error()
 }
+
+func PublishBuzzerCommand(command string) error {
+	payload, err := json.Marshal(map[string]string{"command": command})
+	if err != nil {
+		return err
+	}
+
+	token := Client.Publish(constant.TOPIC_CMD_BUZZER, 1, false, payload)
+	token.Wait()
+	return token.Error()
+}
