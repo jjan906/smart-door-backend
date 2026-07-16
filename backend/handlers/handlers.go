@@ -281,3 +281,92 @@ func ChangePassword(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"message": "Password berhasil diubah"})
 }
+
+// =====================================================
+// DEVICE MANAGEMENT
+// =====================================================
+
+// upsertDevice dipanggil setiap kali ada status masuk dari ESP32
+// Kalau device belum ada → insert baru, kalau sudah ada → update last_seen & state
+func UpsertDevice(status data.DeviceStatus) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	collection := database.GetCollection("devices")
+	now := time.Now().Format(time.RFC3339)
+
+	// Cek apakah device sudah ada
+	var existing data.Device
+	err := collection.FindOne(ctx, bson.M{"device_id": status.DeviceID}).Decode(&existing)
+
+	if err != nil {
+		// Belum ada → insert baru
+		device := data.Device{
+			DeviceID:   status.DeviceID,
+			Name:       status.DeviceID, // default name = device_id
+			IP:         status.IP,
+			State:      status.State,
+			DoorStatus: status.DoorStatus,
+			WifiRSSI:   status.WifiRSSI,
+			UptimeMS:   status.UptimeMS,
+			FirstSeen:  now,
+			LastSeen:   now,
+		}
+		_, err = collection.InsertOne(ctx, device)
+		return err
+	}
+
+	// Sudah ada → update
+	update := bson.M{
+		"$set": bson.M{
+			"state":       status.State,
+			"ip":          status.IP,
+			"door_status": status.DoorStatus,
+			"wifi_rssi":   status.WifiRSSI,
+			"uptime_ms":   status.UptimeMS,
+			"last_seen":   now,
+		},
+	}
+	_, err = collection.UpdateOne(ctx, bson.M{"device_id": status.DeviceID}, update)
+	return err
+}
+
+// GET /api/devices - list semua device
+func GetDevices(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	collection := database.GetCollection("devices")
+	opts := options.Find().SetSort(bson.D{{Key: "last_seen", Value: -1}})
+	cursor, err := collection.Find(ctx, bson.M{}, opts)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	defer cursor.Close(ctx)
+
+	var results []data.Device
+	if err := cursor.All(ctx, &results); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(results)
+}
+
+// DELETE /api/devices/:id - hapus device
+func DeleteDevice(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	deviceID := c.Params("id")
+	if deviceID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "device_id tidak valid"})
+	}
+
+	collection := database.GetCollection("devices")
+	_, err := collection.DeleteOne(ctx, bson.M{"device_id": deviceID})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Device berhasil dihapus"})
+}

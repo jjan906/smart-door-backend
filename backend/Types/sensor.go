@@ -46,3 +46,16 @@ type DeviceStatus struct {
 type DoorCommand struct {
 	Command string `json:"command"` // "open" atau "close"
 }
+
+// Device - perangkat ESP32 yang terdaftar
+type Device struct {
+	DeviceID   string `json:"device_id" bson:"device_id"`
+	Name       string `json:"name" bson:"name"`
+	IP         string `json:"ip" bson:"ip"`
+	State      string `json:"state" bson:"state"`       // online / offline
+	DoorStatus string `json:"door_status" bson:"door_status"`
+	WifiRSSI   int    `json:"wifi_rssi" bson:"wifi_rssi"`
+	UptimeMS   int64  `json:"uptime_ms" bson:"uptime_ms"`
+	FirstSeen  string `json:"first_seen" bson:"first_seen"`
+	LastSeen   string `json:"last_seen" bson:"last_seen"`
+}

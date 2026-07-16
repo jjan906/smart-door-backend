@@ -69,6 +69,8 @@ func main() {
 	})
 
 	// ── PROTECTED ROUTES ───────────────────────────────
+	api.Get("/devices", handlers.GetDevices)
+api.Delete("/devices/:id", handlers.DeleteDevice)
 	api.Post("/auth/change-password", handlers.ChangePassword)  // ← tambah di sini
 	api.Get("/sensor", handlers.GetSensorData)
 	api.Get("/sensor/latest", handlers.GetLatestSensorData)

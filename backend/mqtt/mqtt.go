@@ -64,6 +64,10 @@ var statusHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Messag
 	if err := handlers.SaveDeviceStatus(status); err != nil {
 		fmt.Println("[MongoDB] Gagal simpan device status:", err)
 	}
+	// ← TAMBAH INI: auto-register/update device
+	if err := handlers.UpsertDevice(status); err != nil {
+		fmt.Println("[MongoDB] Gagal upsert device:", err)
+	}
 }
 
 var connectHandler mqtt.OnConnectHandler = func(client mqtt.Client) {
