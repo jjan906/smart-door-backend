@@ -229,18 +229,19 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Body tidak valid"})
 	}
 
-	// Credentials hardcoded — ganti sesuai kebutuhan
-	validUser := constant.ADMIN_USERNAME
-	validPass := constant.ADMIN_PASSWORD
+	ip := c.IP()
 
-	if req.Username != validUser || req.Password != validPass {
+	if req.Username != constant.ADMIN_USERNAME || req.Password != constant.ADMIN_PASSWORD {
+		// ← catat login gagal
+		go SaveEventLog("login", req.Username, "Login gagal - password salah", ip, "failed")
 		return c.Status(401).JSON(fiber.Map{"error": "Username atau password salah"})
 	}
 
-	// Token sederhana: base64(username:timestamp)
-	// Cukup untuk demo — bukan JWT produksi
 	raw := fmt.Sprintf("%s:%d", req.Username, time.Now().Unix())
 	token := base64.StdEncoding.EncodeToString([]byte(raw))
+
+	// ← catat login berhasil
+	go SaveEventLog("login", req.Username, "Login berhasil", ip, "success")
 
 	return c.JSON(fiber.Map{
 		"token":   token,
@@ -369,4 +370,52 @@ func DeleteDevice(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"message": "Device berhasil dihapus"})
+}
+
+// =====================================================
+// EVENT LOGGING
+// =====================================================
+
+// SaveEventLog - dipanggil dari handler lain setiap ada aksi penting
+func SaveEventLog(action, actor, detail, ip, status string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	log := data.EventLog{
+		Action:     action,
+		Actor:      actor,
+		Detail:     detail,
+		IP:         ip,
+		Status:     status,
+		ReceivedAt: time.Now().Format(time.RFC3339),
+	}
+	collection := database.GetCollection("event_logs")
+	_, err := collection.InsertOne(ctx, log)
+	return err
+}
+
+// GET /api/logs?limit=100
+func GetEventLogs(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
+	defer cancel()
+
+	limit := c.QueryInt("limit", 100)
+	collection := database.GetCollection("event_logs")
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "received_at", Value: -1}}).
+		SetLimit(int64(limit))
+
+	cursor, err := collection.Find(ctx, bson.M{}, opts)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	defer cursor.Close(ctx)
+
+	var results []data.EventLog
+	if err := cursor.All(ctx, &results); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(results)
 }

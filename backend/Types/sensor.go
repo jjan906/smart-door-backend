@@ -59,3 +59,13 @@ type Device struct {
 	FirstSeen  string `json:"first_seen" bson:"first_seen"`
 	LastSeen   string `json:"last_seen" bson:"last_seen"`
 }
+
+// EventLog - pencatatan aktivitas sistem
+type EventLog struct {
+	Action     string `json:"action" bson:"action"`         // login, door_open, buzzer_on, dst
+	Actor      string `json:"actor" bson:"actor"`           // username / device_id
+	Detail     string `json:"detail" bson:"detail"`         // keterangan tambahan
+	IP         string `json:"ip" bson:"ip"`                 // IP peminta
+	Status     string `json:"status" bson:"status"`         // success / failed
+	ReceivedAt string `json:"received_at" bson:"received_at"`
+}
