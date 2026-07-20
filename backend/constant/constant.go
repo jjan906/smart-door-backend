@@ -26,7 +26,7 @@ var (
 
 	// ← TAMBAH INI
 	ADMIN_USERNAME = getEnv("ADMIN_USERNAME", "admin")
-	ADMIN_PASSWORD = getEnv("ADMIN_PASSWORD", "Admin@IoT2026")
+	ADMIN_PASSWORD = getEnv("ADMIN_PASSWORD", "Admin@IoT2025")
 )
 
 // MQTT Topics
