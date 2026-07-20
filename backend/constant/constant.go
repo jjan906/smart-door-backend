@@ -12,9 +12,9 @@ func getEnv(key, fallback string) string {
 
 var (
 	// MQTT HiveMQ Cloud config
-	MQTT_URL      = getEnv("MQTT_URL", "45ed91ba68e640d880f44148cb38bae6.s1.eu.hivemq.cloud")
+	MQTT_URL      = getEnv("MQTT_URL", "355e2d6184d74250820cbb4b37f3e880.s1.eu.hivemq.cloud")
 	MQTT_USERNAME = getEnv("MQTT_USERNAME", "esp32user")
-	MQTT_PASSWORD = getEnv("MQTT_PASSWORD", "Esp32@IoT2025")
+	MQTT_PASSWORD = getEnv("MQTT_PASSWORD", "Esp32@IoT2026")
 	MQTT_PORT     = getEnv("MQTT_PORT", "8883")
 
 	// MongoDB config
@@ -26,7 +26,7 @@ var (
 
 	// ← TAMBAH INI
 	ADMIN_USERNAME = getEnv("ADMIN_USERNAME", "admin")
-	ADMIN_PASSWORD = getEnv("ADMIN_PASSWORD", "Admin@IoT2025")
+	ADMIN_PASSWORD = getEnv("ADMIN_PASSWORD", "Admin@IoT2026")
 )
 
 // MQTT Topics
